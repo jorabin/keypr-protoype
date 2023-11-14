@@ -1,0 +1,72 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.thebuildingblocks.keypr</groupId>
+		<artifactId>keypr-parent</artifactId>
+		<version>0.9-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>derec-protobuf</artifactId>
+	<packaging>jar</packaging>
+
+	<name>derec-protobuf</name>
+	<url>http://maven.apache.org</url>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>3.22.1</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+				<configuration>
+					<generatedSourcesDirectory>src/generated/java</generatedSourcesDirectory>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>build protobuf sources</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.github.os72</groupId>
+						<artifactId>protoc-jar-maven-plugin</artifactId>
+						<version>3.11.4</version>
+						<executions>
+							<execution>
+								<phase>generate-sources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<!-- see http://os72.github.io/protoc-jar-maven-plugin/run-mojo.html -->
+									<protocArtifact>com.google.protobuf:protoc:3.24.3</protocArtifact>
+									<addProtoSources>all</addProtoSources>
+									<includeMavenTypes>direct
+									</includeMavenTypes>
+									<inputDirectories>
+										<include>src/main/protobuf/org.derecalliance.derec.protobuf</include>
+									</inputDirectories>
+									<outputDirectory>src/generated/java</outputDirectory>
+									<cleanOutputFolder>true</cleanOutputFolder>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>

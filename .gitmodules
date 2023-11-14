@@ -1,0 +1,3 @@
+[submodule "derec-protobuf/src/main/protobuf/org.derecalliance.derec.protobuf"]
+	path = derec-protobuf/src/main/protobuf/org.derecalliance.derec.protobuf
+	url = https://github.com/derecalliance/protobufs.git
