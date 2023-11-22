@@ -11,6 +11,7 @@
 	<artifactId>derec-protobuf</artifactId>
 	<packaging>jar</packaging>
 
+	<groupId>org.derecalliance.derec</groupId>
 	<name>derec-protobuf</name>
 	<url>http://maven.apache.org</url>
 
