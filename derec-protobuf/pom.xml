@@ -31,7 +31,7 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>${maven-compiler-plugin.version}</version>
 				<configuration>
-					<generatedSourcesDirectory>src/generated/java</generatedSourcesDirectory>
+					<generatedSourcesDirectory>${project.basedir}/src/generated/java</generatedSourcesDirectory>
 				</configuration>
 			</plugin>
 		</plugins>
