@@ -24,3 +24,8 @@ jobs:
       env:
         GITHUB_USER_REF: noone
         GITHUB_TOKEN_REF: ${{ secrets.PACKAGE_ACCESS_TOKEN}}
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: protobuf-jar
+        path: derec-protobuf/target/derec-protobuf-0.9-SNAPSHOT.jar
