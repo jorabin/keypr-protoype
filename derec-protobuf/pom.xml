@@ -14,7 +14,6 @@
 	<packaging>jar</packaging>
 
 	<name>derec-protobuf</name>
-	<url>http://maven.apache.org</url>
 
 	<dependencies>
 		<dependency>
@@ -30,16 +29,31 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>${maven-compiler-plugin.version}</version>
-				<configuration>
-					<generatedSourcesDirectory>${project.basedir}/src/generated/java</generatedSourcesDirectory>
-				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>3.4.0</version>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>src/generated</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
 
 	<profiles>
 		<profile>
-			<id>build protobuf sources</id>
+			<id>build-protobuf-sources</id>
 			<build>
 				<plugins>
 					<plugin>
@@ -59,9 +73,9 @@
 									<includeMavenTypes>direct
 									</includeMavenTypes>
 									<inputDirectories>
-										<include>${project.basedir}/src/main/protobuf/org.derecalliance.derec.protobuf</include>
+										<include>src/main/protobuf/org.derecalliance.derec.protobuf</include>
 									</inputDirectories>
-									<outputDirectory>${project.basedir}/src/generated/java</outputDirectory>
+									<outputDirectory>src/generated/java</outputDirectory>
 									<cleanOutputFolder>true</cleanOutputFolder>
 								</configuration>
 							</execution>
