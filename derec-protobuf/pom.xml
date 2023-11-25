@@ -13,7 +13,8 @@
 	<version>0.9-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>derec-protobuf</name>
+	<name>DeRec :: Protobuf</name>
+	<description>DeRec Protobuf Java bindings.</description>
 
 	<dependencies>
 		<dependency>
@@ -25,11 +26,6 @@
 
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${maven-compiler-plugin.version}</version>
-			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>

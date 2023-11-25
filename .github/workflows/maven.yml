@@ -1,7 +1,7 @@
 name: Java CI with Maven
 
 # it doesn't update the protobuf files and doesn't create new Java bindings
-# it does compile updated Java bindings if they are created and pushed somewhere else
+# it does compile updated Java bindings if they are created and pushed from somewhere else
 
 on:
   [push, pull_request, workflow_dispatch]
@@ -27,9 +27,3 @@ jobs:
       env:
         GITHUB_USER_REF: noone
         GITHUB_TOKEN_REF: ${{ secrets.PACKAGE_ACCESS_TOKEN}}
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: protobuf-jar
-        path: derec-protobuf/target/derec-protobuf-0.9-SNAPSHOT.jar
