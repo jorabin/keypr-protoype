@@ -29,7 +29,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static com.thebuildingblocks.keypr.common.TestIds.DEFAULT_IDS;
@@ -66,6 +68,7 @@ public class TestHelperServer {
     }
 
     public void startServer(int port, DeRecIdentity[] ids) throws IOException {
+        logger.info("Starting server on port {}", port);
         server = HttpServer.create(new InetSocketAddress(port), 10);
         for (DeRecIdentity id : ids) {
             if (id.getName().startsWith("no")) {
@@ -75,8 +78,23 @@ public class TestHelperServer {
             logger.info("Started helper {}", context.getPath());
             contexts.add(context);
         }
+        server.createContext("/", new KeyprHandler());
         logger.info("Server started");
         server.start();
+    }
+
+    public static class KeyprHandler implements HttpHandler {
+
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            exchange.sendResponseHeaders(400, 0);
+            try (OutputStream o = exchange.getResponseBody()) {
+                o.write(("<body style=\"font-family:sans-serif\">" +
+                        "<h1>Keypr Server</h1>" +
+                        "<p>That is not a known helper</p>" +
+                        "</body>").getBytes(StandardCharsets.UTF_8));
+            }
+        }
     }
 
     public static class HelperHandler implements HttpHandler {
@@ -111,7 +129,13 @@ public class TestHelperServer {
             } catch (Throwable t) {
                 logger.error("Exception processing message: {}", t.getMessage());
                 try {
-                    exchange.sendResponseHeaders(400, -1);
+                    exchange.sendResponseHeaders(400, 0);
+                    try (OutputStream o = exchange.getResponseBody()) {
+                        o.write(("<body style=\"font-family:sans-serif\">" +
+                                "<h1>Keypr Server</h1>" +
+                                "<p>Error: "+ t.getMessage() + "</p>" +
+                                "</body>").getBytes(StandardCharsets.UTF_8));
+                    }
                 } catch (IOException e) {
                     throw new RuntimeException("Error sending error response", e);
                 }

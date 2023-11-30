@@ -35,7 +35,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.thebuildingblocks.keypr.helper.HelperServerMessageFactory.*;
-import static org.derecalliance.derec.protobuf.Derecmessage.DeRecMessage.parseFrom;
 
 public class HelperServerResponseProcessing {
     static Logger logger = LoggerFactory.getLogger(HelperServer.class);
@@ -115,9 +114,16 @@ public class HelperServerResponseProcessing {
         void process() throws IOException;
     }
     public void process(InputStream requestBody, OutputStream responseBody, Processor preProcessor) throws IOException {
+        // deserialise as protobuf
         Derecmessage.DeRecMessage message = Derecmessage.DeRecMessage.parseFrom(requestBody);
+        if (!message.hasMessageBodies()) {
+            throw new IllegalStateException("Received message has no message body");
+        }
+
+        // process the incoming messages
         List<Derecmessage.DeRecMessage.HelperMessageBody> responses = getHelperMessageBodies(message);
 
+        // serialise the responses
         Derecmessage.DeRecMessage reply = Derecmessage.DeRecMessage.newBuilder()
                 .setMessageBodies(Derecmessage.DeRecMessage.MessageBodies.newBuilder()
                         .setHelperMessageBodies(Derecmessage.DeRecMessage.HelperMessageBodies.newBuilder()
