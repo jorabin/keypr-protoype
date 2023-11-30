@@ -37,17 +37,55 @@ import java.util.stream.Collectors;
 import static com.thebuildingblocks.keypr.helper.HelperServerMessageFactory.*;
 
 public class HelperServerResponseProcessing {
-    static Logger logger = LoggerFactory.getLogger(HelperServer.class);
+    private final static Logger logger = LoggerFactory.getLogger(HelperServer.class);
+    private final HelperServerShare.Storage storage;
+    private final DeRecIdentity id;
 
     public HelperServerResponseProcessing(DeRecIdentity id, HelperServerShare.Storage storage) {
         this.storage = storage;
         this.id = id;
     }
 
-    private final HelperServerShare.Storage storage;
-    private final DeRecIdentity id;
+    /**
+     * Interface to allow setting of response headers prior to writing to OutputStream
+     */
+    @FunctionalInterface
+    public interface Processor {
+        void process() throws IOException;
+    }
 
-    public List<Derecmessage.DeRecMessage.HelperMessageBody> getHelperMessageBodies(Derecmessage.DeRecMessage message) throws IOException {
+    /**
+     * Process an incoming request and produce a response
+     * @param requestBody signed and encrypted request stream
+     * @param responseBody signed and encrypted response stream
+     * @param preProcessor action to take before writing to responseBody e.g. set headers
+     */
+    public void process(InputStream requestBody, OutputStream responseBody, Processor preProcessor) throws IOException {
+        // deserialise as protobuf
+        Derecmessage.DeRecMessage message = Derecmessage.DeRecMessage.parseFrom(requestBody);
+        if (!message.hasMessageBodies()) {
+            throw new IllegalStateException("Received message has no message body");
+        }
+
+        // process the incoming messages
+        List<Derecmessage.DeRecMessage.HelperMessageBody> responses = processMessages(message);
+
+        // serialise the responses
+        Derecmessage.DeRecMessage reply = Derecmessage.DeRecMessage.newBuilder()
+                .setMessageBodies(Derecmessage.DeRecMessage.MessageBodies.newBuilder()
+                        .setHelperMessageBodies(Derecmessage.DeRecMessage.HelperMessageBodies.newBuilder()
+                                .addAllHelperMessageBody(responses)
+                                .build())
+                        .build())
+                .build();
+
+        preProcessor.process();
+        try (OutputStream os = responseBody) {
+            reply.writeTo(os);
+        }
+    }
+
+    public List<Derecmessage.DeRecMessage.HelperMessageBody> processMessages(Derecmessage.DeRecMessage message) throws IOException {
         Derecmessage.DeRecMessage.SharerMessageBodies messageBodies = message.getMessageBodies().getSharerMessageBodies();
         List<Derecmessage.DeRecMessage.HelperMessageBody> responses = new ArrayList<>();
         for (Derecmessage.DeRecMessage.SharerMessageBody messageBody : messageBodies.getSharerMessageBodyList()) {
@@ -107,34 +145,5 @@ public class HelperServerResponseProcessing {
 
     private Derecmessage.DeRecMessage.HelperMessageBody processGetSecretIdsVersionsRequestMessage(Derecmessage.DeRecMessage message, Secretidsversions.GetSecretIdsVersionsRequestMessage getSecretIdsVersionsRequestMessage) {
         return getGetSecretIdsVersionsResponseMessageBody(storage.getShares(message.getSender()));
-    }
-
-    @FunctionalInterface
-    public interface Processor {
-        void process() throws IOException;
-    }
-    public void process(InputStream requestBody, OutputStream responseBody, Processor preProcessor) throws IOException {
-        // deserialise as protobuf
-        Derecmessage.DeRecMessage message = Derecmessage.DeRecMessage.parseFrom(requestBody);
-        if (!message.hasMessageBodies()) {
-            throw new IllegalStateException("Received message has no message body");
-        }
-
-        // process the incoming messages
-        List<Derecmessage.DeRecMessage.HelperMessageBody> responses = getHelperMessageBodies(message);
-
-        // serialise the responses
-        Derecmessage.DeRecMessage reply = Derecmessage.DeRecMessage.newBuilder()
-                .setMessageBodies(Derecmessage.DeRecMessage.MessageBodies.newBuilder()
-                        .setHelperMessageBodies(Derecmessage.DeRecMessage.HelperMessageBodies.newBuilder()
-                                .addAllHelperMessageBody(responses)
-                                .build())
-                        .build())
-                .build();
-
-        preProcessor.process();
-        try (OutputStream os = responseBody) {
-            reply.writeTo(os);
-        }
     }
 }
