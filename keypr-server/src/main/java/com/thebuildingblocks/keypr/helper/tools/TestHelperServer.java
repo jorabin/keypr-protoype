@@ -37,22 +37,7 @@ import java.util.*;
 import static com.thebuildingblocks.keypr.common.TestIds.DEFAULT_IDS;
 
 public class TestHelperServer {
-    static Logger logger = LoggerFactory.getLogger(TestHelperServer.class);
-    HttpServer server;
 
-    public HttpServer getServer() {
-        return server;
-    }
-
-    public List<HttpContext> getContexts() {
-        return contexts;
-    }
-
-    private final List<HttpContext> contexts = new ArrayList<>();
-
-    public TestHelperServer(){
-
-    }
     public static void main(String[] args) throws IOException {
         TestHelperServer ths = new TestHelperServer();
         ths.startServer(8080, DEFAULT_IDS);
@@ -62,10 +47,10 @@ public class TestHelperServer {
         ths.stopServer();
     }
 
-    public void stopServer() {
-        server.stop(0);
-        System.out.println("Server stopped");
-    }
+    static Logger logger = LoggerFactory.getLogger(TestHelperServer.class);
+    HttpServer server;
+    private final List<HttpContext> contexts = new ArrayList<>();
+
 
     public void startServer(int port, DeRecIdentity[] ids) throws IOException {
         logger.info("Starting server on port {}", port);
@@ -78,12 +63,25 @@ public class TestHelperServer {
             logger.info("Started helper {}", context.getPath());
             contexts.add(context);
         }
-        server.createContext("/", new KeyprHandler());
+        server.createContext("/", new DefaultHandler());
         logger.info("Server started");
         server.start();
     }
 
-    public static class KeyprHandler implements HttpHandler {
+    public void stopServer() {
+        server.stop(0);
+        System.out.println("Server stopped");
+    }
+
+    public HttpServer getServer() {
+        return server;
+    }
+
+    public List<HttpContext> getContexts() {
+        return contexts;
+    }
+
+    public static class DefaultHandler implements HttpHandler {
 
         @Override
         public void handle(HttpExchange exchange) throws IOException {
@@ -100,21 +98,7 @@ public class TestHelperServer {
     public static class HelperHandler implements HttpHandler {
 
         private final HelperServerResponseProcessing helperServerResponseProcessing;
-
-        HelperServerShare.Storage storage = new HelperServerShare.Storage() {
-            final Map<ByteString, List<HelperServerShare>> shares = new HashMap<>();
-
-            @Override
-            public void putShare(ByteString id, HelperServerShare share) {
-                List<HelperServerShare> list = shares.computeIfAbsent(id, k -> new ArrayList<>());
-                list.add(share);
-            }
-
-            @Override
-            public List<HelperServerShare> getShares(ByteString id) {
-                return shares.get(id);
-            }
-        };
+        private final HelperServerShare.Storage storage = new HelperServerShare.SimpleStorage();
 
         public HelperHandler(DeRecIdentity id) {
             this.helperServerResponseProcessing = new HelperServerResponseProcessing(id, storage);

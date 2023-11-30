@@ -22,9 +22,15 @@ package com.thebuildingblocks.keypr.helper;
 import com.google.protobuf.ByteString;
 import org.derecalliance.derec.api.DeRecSecret;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HelperServerShare {
+    DeRecSecret.Id secretId;
+    int version;
+    byte[] payload;
 
     public HelperServerShare(DeRecSecret.Id secretId, int version, byte[] payload) {
         this.secretId = secretId;
@@ -37,7 +43,19 @@ public class HelperServerShare {
 
         List<HelperServerShare> getShares (ByteString id);
     }
-    DeRecSecret.Id secretId;
-    int version;
-    byte[] payload;
+
+    public static class SimpleStorage implements Storage {
+        final Map<ByteString, List<HelperServerShare>> shares = new HashMap<>();
+
+        @Override
+        public void putShare(ByteString id, HelperServerShare share) {
+            List<HelperServerShare> list = shares.computeIfAbsent(id, k -> new ArrayList<>());
+            list.add(share);
+        }
+
+        @Override
+        public List<HelperServerShare> getShares(ByteString id) {
+            return shares.get(id);
+        }
+    }
 }
