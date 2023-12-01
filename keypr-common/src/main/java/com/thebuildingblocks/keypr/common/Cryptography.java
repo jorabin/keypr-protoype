@@ -20,6 +20,8 @@ package com.thebuildingblocks.keypr.common;
 import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.util.Base64;
 
 public class Cryptography {
 
@@ -33,5 +35,8 @@ public class Cryptography {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+    public static String pemFrom(PublicKey publicKey) {
+        return Base64.getEncoder().encodeToString(publicKey.getEncoded());
     }
 }

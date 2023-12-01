@@ -22,6 +22,7 @@ import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import com.thebuildingblocks.keypr.common.TestIds;
 import com.thebuildingblocks.keypr.helper.HelperServerResponseProcessing;
 import com.thebuildingblocks.keypr.helper.HelperServerShare;
 import org.derecalliance.derec.api.DeRecIdentity;
@@ -34,13 +35,11 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static com.thebuildingblocks.keypr.common.TestIds.DEFAULT_IDS;
-
 public class TestHelperServer {
 
     public static void main(String[] args) throws IOException {
         TestHelperServer ths = new TestHelperServer();
-        ths.startServer(8080, DEFAULT_IDS);
+        ths.startServer(8080, TestIds.INSTANCE.defaultIds);
         System.out.println("Hit enter to exit");
         Scanner sc = new Scanner(System.in);
         sc.nextLine();
@@ -52,13 +51,10 @@ public class TestHelperServer {
     private final List<HttpContext> contexts = new ArrayList<>();
 
 
-    public void startServer(int port, DeRecIdentity[] ids) throws IOException {
+    public void startServer(int port, List<DeRecIdentity> ids) throws IOException {
         logger.info("Starting server on port {}", port);
         server = HttpServer.create(new InetSocketAddress(port), 10);
         for (DeRecIdentity id : ids) {
-            if (id.getName().startsWith("no")) {
-                continue;
-            }
             HttpContext context = server.createContext(id.getAddress().getPath(), new HelperHandler(id));
             logger.info("Started helper {}", context.getPath());
             contexts.add(context);

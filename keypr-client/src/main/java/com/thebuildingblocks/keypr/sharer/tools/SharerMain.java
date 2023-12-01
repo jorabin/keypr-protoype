@@ -17,6 +17,7 @@
 
 package com.thebuildingblocks.keypr.sharer.tools;
 
+import com.thebuildingblocks.keypr.common.TestIds;
 import com.thebuildingblocks.keypr.sharer.Secret;
 import com.thebuildingblocks.keypr.sharer.Sharer;
 import org.derecalliance.derec.api.*;
@@ -29,8 +30,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 import static com.thebuildingblocks.keypr.common.Cryptography.keyPairGenerator;
-import static com.thebuildingblocks.keypr.common.TestIds.DEFAULT_IDS;
-import static com.thebuildingblocks.keypr.common.TestIds.pemFrom;
+import static com.thebuildingblocks.keypr.common.Cryptography.pemFrom;
 
 /**
  * Illustration of use of classes
@@ -43,7 +43,6 @@ public class SharerMain {
     }
 
     public void run() {
-
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
         String pem = pemFrom(keyPair.getPublic());
         // build a sharer
@@ -55,7 +54,7 @@ public class SharerMain {
         // get a secret
         logger.info("Building a secret, wait for it to be recoverable");
         Secret secret = me.newSecret("Martin Luther", "I have a dream".getBytes(StandardCharsets.UTF_8),
-                Arrays.asList(DEFAULT_IDS));
+                TestIds.INSTANCE.defaultIds);
         // get last version shared - in this case the first version shared
         DeRecVersion v = secret.getVersions().lastEntry().getValue();
         logger.info("Secret version: {}, is protected: {}", v.getVersionNumber(), v.isProtected());
@@ -80,7 +79,7 @@ public class SharerMain {
         }*/
 
         DeRecSecret secret2 = me.newSecret("Genghis Khan", "Something".getBytes(StandardCharsets.UTF_8),
-                Arrays.asList(DEFAULT_IDS));
+                TestIds.INSTANCE.defaultIds);
 
 
         System.out.println("Hit enter to exit");

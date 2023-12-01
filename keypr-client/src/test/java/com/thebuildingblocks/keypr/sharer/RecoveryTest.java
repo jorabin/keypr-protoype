@@ -22,8 +22,7 @@ import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 import static com.thebuildingblocks.keypr.common.Cryptography.keyPairGenerator;
-import static com.thebuildingblocks.keypr.common.TestIds.DEFAULT_IDS;
-import static com.thebuildingblocks.keypr.common.TestIds.pemFrom;
+import static com.thebuildingblocks.keypr.common.Cryptography.pemFrom;
 import static org.junit.Assert.*;
 
 public class RecoveryTest {
@@ -31,7 +30,7 @@ public class RecoveryTest {
     @Test
     public void ListSecretIdsVersionsTest() throws IOException, ExecutionException, InterruptedException, TimeoutException {
         TestHelperServer server = new TestHelperServer();
-        server.startServer(8080, TestIds.DEFAULT_IDS);
+        server.startServer(8080, TestIds.INSTANCE.defaultIds);
         try {
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
             String pem = pemFrom(keyPair.getPublic());
@@ -45,7 +44,7 @@ public class RecoveryTest {
             // build a secret and wait for results from all
             Secret secret1 = me.newSecret("A test secret", "some secret or other".getBytes(StandardCharsets.UTF_8));
             //secret1.retryParameters.connectTimeout= Duration.ofSeconds(1);
-            List<CompletableFuture<? extends DeRecHelperStatus>> futures = secret1.addHelpersAsync(Arrays.asList(DEFAULT_IDS));
+            List<CompletableFuture<? extends DeRecHelperStatus>> futures = secret1.addHelpersAsync(TestIds.INSTANCE.defaultIds);
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get(6, TimeUnit.SECONDS);
             assertEquals(server.getContexts().size(), secret1.getPairedHelpers());
             secret1.update(secret1.getVersions().lastEntry().getValue().getProtectedValue());
@@ -55,8 +54,7 @@ public class RecoveryTest {
 
             // start a new secret, share and block
             Secret secret2 = me.newSecret("my second secret",
-                    "very hush hush".getBytes(StandardCharsets.UTF_8),
-                    Arrays.asList(DEFAULT_IDS));
+                    "very hush hush".getBytes(StandardCharsets.UTF_8),TestIds.INSTANCE.defaultIds);
 
 
             // secrets should have same helpers

@@ -17,6 +17,8 @@
 
 package com.thebuildingblocks.keypr.sharer.tools;
 
+import com.thebuildingblocks.keypr.common.Cryptography;
+import com.thebuildingblocks.keypr.common.TestIds;
 import com.thebuildingblocks.keypr.sharer.Secret;
 import com.thebuildingblocks.keypr.sharer.Sharer;
 import com.thebuildingblocks.keypr.sharer.Version;
@@ -30,8 +32,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import static com.thebuildingblocks.keypr.common.Cryptography.keyPairGenerator;
-import static com.thebuildingblocks.keypr.common.TestIds.DEFAULT_IDS;
-import static com.thebuildingblocks.keypr.common.TestIds.pemFrom;
+import static com.thebuildingblocks.keypr.common.Cryptography.pemFrom;
 
 /**
  * Illustration of use of classes
@@ -44,7 +45,6 @@ public class SharerMain2 {
     }
 
     public void run() throws InterruptedException {
-
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
         String pem = pemFrom(keyPair.getPublic());
         // build a sharer
@@ -60,7 +60,7 @@ public class SharerMain2 {
         Version v = (Version) secret.getVersions().lastEntry().getValue();
         logger.info("Secret version: {}, is protected: {}", v.getVersionNumber(), v.isProtected());
 
-        for (DeRecIdentity helperInfo: DEFAULT_IDS) {
+        for (DeRecIdentity helperInfo: TestIds.INSTANCE.defaultIds) {
             Thread.sleep(5000);
             logger.info("Pairing with {}", helperInfo.getName());
             secret.addHelpersAsync(List.of(helperInfo));

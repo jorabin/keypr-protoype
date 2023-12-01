@@ -13,8 +13,7 @@ import java.security.KeyPair;
 import java.util.Arrays;
 
 import static com.thebuildingblocks.keypr.common.Cryptography.keyPairGenerator;
-import static com.thebuildingblocks.keypr.common.TestIds.DEFAULT_IDS;
-import static com.thebuildingblocks.keypr.common.TestIds.pemFrom;
+import static com.thebuildingblocks.keypr.common.Cryptography.pemFrom;
 
 public class RecipesTest {
     static TestHelperServer server;
@@ -24,7 +23,7 @@ public class RecipesTest {
     @BeforeClass
     public static void setUpServer() throws IOException {
         server = new TestHelperServer();
-        server.startServer(8080, TestIds.DEFAULT_IDS);
+        server.startServer(8080, TestIds.INSTANCE.defaultIds);
     }
 
     @AfterClass
@@ -44,11 +43,11 @@ public class RecipesTest {
                 .build();
         secret1 = sharer.newSecret("my first secret",
                 "quite hush hush".getBytes(StandardCharsets.UTF_8),
-                Arrays.asList(DEFAULT_IDS));
+                TestIds.INSTANCE.defaultIds);
         secret1.update("an updated version".getBytes(StandardCharsets.UTF_8));
         secret2 = sharer.newSecret("my second secret",
                 "very hush hush".getBytes(StandardCharsets.UTF_8),
-                Arrays.asList(DEFAULT_IDS));
+                TestIds.INSTANCE.defaultIds);
     }
 
     @After

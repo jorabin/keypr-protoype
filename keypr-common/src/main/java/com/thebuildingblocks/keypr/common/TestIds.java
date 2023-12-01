@@ -20,42 +20,53 @@ package com.thebuildingblocks.keypr.common;
 import org.derecalliance.derec.api.DeRecIdentity;
 
 import java.security.KeyPair;
-import java.security.PublicKey;
-import java.util.Base64;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.thebuildingblocks.keypr.common.Cryptography.keyPairGenerator;
+import static com.thebuildingblocks.keypr.common.Cryptography.pemFrom;
 
-public class TestIds {
+public enum TestIds {
+    INSTANCE();
 
-    public static String[] helperNames = {"leemon", "rohit", "dipti", "cate", "jo", "niall", "daniel", "noone", "nowhere"};
-
-    public static Map<String, KeyPair> DEFAULT_KEYPAIRS = new HashMap<>();
-
-    static {
-        for (String name: helperNames) {
-            DEFAULT_KEYPAIRS.put(name, keyPairGenerator.generateKeyPair());
+    public record Person(String name, String email, KeyPair keyPair) {
+        public Person(String name, String email) {
+            this(name, email, keyPairGenerator.generateKeyPair());
         }
     }
+    public final List<DeRecIdentity> defaultIds = new ArrayList<>();
+    public final List<DeRecIdentity> invalidIds = new ArrayList<>();
+    public final Map<String, Person> helpers = new HashMap<>();
+    public final Map<String, Person> sharers = new HashMap<>();
+    String helperHost = "http://localhost:8080";
 
-    private static String pem(String name){
-        return Base64.getEncoder().encodeToString(DEFAULT_KEYPAIRS.get(name).getPublic().getEncoded());
+    private TestIds() {
+        this.helperHost = System.getenv("HELPER_HOST");
+        if (this.helperHost == null) {
+            this.helperHost = "http://localhost:8080";
+        }
+
+        helpers.put("leemon", new Person("leemon", "mailto:leemon@swirldslabs.com"));
+        helpers.put("rohit", new Person("rohit", "mailto:rohit@swirldslabs.com"));
+        helpers.put("dipti", new Person("dipti", "mailto:dipti@swirldslabs.com"));
+        helpers.put("cate", new Person("cate", "mailto:cate@swirldslabs.com"));
+        helpers.put("jo", new Person("jo", "mailto:jo@thebuildingblocks.com"));
+        helpers.put("niall", new Person("niall", "mailto:niall@thebuildingblocks.com"));
+        helpers.put("daniel", new Person("daniel", "mailto:daniel@thebuildingblocks.com"));
+
+
+        sharers.put("tigger", new Person("tigger", "mailto:tigger@houseatpoohcorner.com"));
+        sharers.put("eeyore", new Person("eeyore", "mailto:eeyore@houseatpoohcorner.com"));
+        sharers.put("piglet", new Person("piglet", "mailto:piglet@houseatpoohcorner.com"));
+
+        for (Person person : helpers.values()) {
+            defaultIds.add(new DeRecIdentity(person.name, person.email, helperHost + "/" + person.name,
+                    pemFrom(person.keyPair.getPublic())));
+        }
+
+        invalidIds.add(new DeRecIdentity("nohelper", "", helperHost + "/" + "noone", ""));
+        invalidIds.add(new DeRecIdentity("notanaddress", "", "http://10.0.0.0:8080", ""));
     }
-
-    public static String pemFrom(PublicKey publicKey) {
-        return Base64.getEncoder().encodeToString(publicKey.getEncoded());
-    }
-    public static DeRecIdentity[] DEFAULT_IDS = {
-            new DeRecIdentity("leemon", "mailto:leemon@swirldslabs.com", "http://localhost:8080/leemon", pem("leemon")),
-            new DeRecIdentity("rohit", "mailto:rohit@swirldslabs.com", "http://localhost:8080/rohit", pem("rohit")),
-            new DeRecIdentity("dipti", "mailto:dipti@swirldslabs.com", "http://localhost:8080/dipti", pem("dipti")),
-            new DeRecIdentity("cate", "mailto:cate@swirldslabs.com", "http://localhost:8080/cate", pem("cate")),
-            new DeRecIdentity("jo", "mailto:jo@thebuildingblocks.com", "http://localhost:8080/jo", pem("jo")),
-            new DeRecIdentity("niall", "mailto:niall@thebuildingblocks.com", "http://localhost:8080/niall", pem("niall")),
-            new DeRecIdentity("daniel", "mailto:daniel@thebuildingblocks.com", "http://localhost:8080/daniel", pem("daniel")),
-            new DeRecIdentity("noone", "mailto:noone@thebuildingblocks.com", "http://localhost:8080/noone", pem("noone")),
-            new DeRecIdentity("nowhere", "mailto:nowhere@thebuildingblocks.com", "http://192.168.1.40/nowhere", pem("nowhere")),
-    };
-
 }
