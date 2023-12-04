@@ -111,7 +111,7 @@ public class Recovery {
                     listener.accept(Notification.newBuilder()
                             .secret(Secret.EMPTY_SECRET) // todo refigure this
                             .severity(NORMAL)
-                            .message(response.getResult().getMemo())
+                            .message(response.getResult().getMemo() + " this is not the correct secret id")
                             .build(LIST_SECRET_AVAILABLE));
                     return result;
                 })

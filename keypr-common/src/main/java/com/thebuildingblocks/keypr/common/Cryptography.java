@@ -17,26 +17,28 @@
 
 package com.thebuildingblocks.keypr.common;
 
-import java.security.KeyPairGenerator;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
+import java.security.*;
 import java.util.Base64;
 
 public class Cryptography {
 
     public static MessageDigest messageDigest;
     public static KeyPairGenerator keyPairGenerator;
+    public static SecureRandom secureRandom;
 
     static {
         try {
             messageDigest = MessageDigest.getInstance("SHA-384");
             keyPairGenerator = KeyPairGenerator.getInstance("EC");
+            secureRandom = new SecureRandom();
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
     }
     public static String pemFrom(PublicKey publicKey) {
         return Base64.getEncoder().encodeToString(publicKey.getEncoded());
+    }
+    public static PublicKey fromPem(String pemEncodedPublicKey) {
+        return null;
     }
 }

@@ -19,11 +19,9 @@ package com.thebuildingblocks.keypr.common;
 
 import org.derecalliance.derec.api.DeRecIdentity;
 
+import java.net.URI;
 import java.security.KeyPair;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.thebuildingblocks.keypr.common.Cryptography.keyPairGenerator;
 import static com.thebuildingblocks.keypr.common.Cryptography.pemFrom;
@@ -31,15 +29,20 @@ import static com.thebuildingblocks.keypr.common.Cryptography.pemFrom;
 public enum TestIds {
     INSTANCE();
 
-    public record Person(String name, String email, KeyPair keyPair) {
-        public Person(String name, String email) {
-            this(name, email, keyPairGenerator.generateKeyPair());
+    public record Counterparty(String name, String email, URI address) {
+        public Counterparty(String name, String email){
+            this(name, email, URI.create("https://example.com"));
+        }
+        static KeyPair bogusKeyPair = keyPairGenerator.generateKeyPair();
+        DeRecIdentity asDeRecIdentity(){
+            return new DeRecIdentity(name, email, address.toString(), pemFrom(bogusKeyPair.getPublic()));
         }
     }
+
     public final List<DeRecIdentity> defaultIds = new ArrayList<>();
     public final List<DeRecIdentity> invalidIds = new ArrayList<>();
-    public final Map<String, Person> helpers = new HashMap<>();
-    public final Map<String, Person> sharers = new HashMap<>();
+    public final Map<String, Counterparty> helpers = new HashMap<>();
+    public final Map<String, Counterparty> sharers = new HashMap<>();
     String helperHost = "http://localhost:8080";
 
     private TestIds() {
@@ -48,25 +51,45 @@ public enum TestIds {
             this.helperHost = "http://localhost:8080";
         }
 
-        helpers.put("leemon", new Person("leemon", "mailto:leemon@swirldslabs.com"));
-        helpers.put("rohit", new Person("rohit", "mailto:rohit@swirldslabs.com"));
-        helpers.put("dipti", new Person("dipti", "mailto:dipti@swirldslabs.com"));
-        helpers.put("cate", new Person("cate", "mailto:cate@swirldslabs.com"));
-        helpers.put("jo", new Person("jo", "mailto:jo@thebuildingblocks.com"));
-        helpers.put("niall", new Person("niall", "mailto:niall@thebuildingblocks.com"));
-        helpers.put("daniel", new Person("daniel", "mailto:daniel@thebuildingblocks.com"));
+        counterpartyBuilder("leemon", "mailto:leemon@swirldslabs.com");
+        counterpartyBuilder("rohit", "mailto:rohit@swirldslabs.com");
+        counterpartyBuilder("dipti", "mailto:dipti@swirldslabs.com");
+        counterpartyBuilder("cate", "mailto:cate@swirldslabs.com");
+        counterpartyBuilder("jo", "mailto:jo@thebuildingblocks.com");
+        counterpartyBuilder("niall", "mailto:niall@thebuildingblocks.com");
+        counterpartyBuilder("daniel", "mailto:daniel@thebuildingblocks.com");
 
+        sharers.put("tigger", new Counterparty("tigger", "mailto:tigger@houseatpoohcorner.com"));
+        sharers.put("eeyore", new Counterparty("eeyore", "mailto:eeyore@houseatpoohcorner.com"));
+        sharers.put("piglet", new Counterparty("piglet", "mailto:piglet@houseatpoohcorner.com"));
 
-        sharers.put("tigger", new Person("tigger", "mailto:tigger@houseatpoohcorner.com"));
-        sharers.put("eeyore", new Person("eeyore", "mailto:eeyore@houseatpoohcorner.com"));
-        sharers.put("piglet", new Person("piglet", "mailto:piglet@houseatpoohcorner.com"));
+        // create a map of encryption contexts for each sharer for each helper
+        Map<Counterparty, Map<Counterparty, EncryptionContext>> sharersByHelper = new HashMap<>();
+        for (Counterparty helper: helpers.values()) {
+            for (Counterparty sharer: sharers.values()) {
+                Map<Counterparty, EncryptionContext> sharers = sharersByHelper.computeIfAbsent(helper, s-> new HashMap<>());
+                sharers.put(sharer, EncryptionContext.forHelper(helper.asDeRecIdentity(), sharer.asDeRecIdentity()));
+            }
+        }
 
-        for (Person person : helpers.values()) {
-            defaultIds.add(new DeRecIdentity(person.name, person.email, helperHost + "/" + person.name,
-                    pemFrom(person.keyPair.getPublic())));
+        // create a map of encryption contexts for each helper for each sharer
+        Map<Counterparty, Map<Counterparty, EncryptionContext>> helpersBySharer = new HashMap<>();
+        for (Counterparty sharer: sharers.values()) {
+            for (Counterparty helper: helpers.values()) {
+                Map<Counterparty, EncryptionContext> helpers = helpersBySharer.computeIfAbsent(sharer, s-> new HashMap<>());
+                helpers.put(helper, EncryptionContext.forSharer(sharersByHelper.get(helper).get(sharer).getContactInfo()));
+            }
+        }
+
+        for (Counterparty helper: helpers.values()) {
+            defaultIds.add(helper.asDeRecIdentity());
         }
 
         invalidIds.add(new DeRecIdentity("nohelper", "", helperHost + "/" + "noone", ""));
         invalidIds.add(new DeRecIdentity("notanaddress", "", "http://10.0.0.0:8080", ""));
+    }
+
+    private void counterpartyBuilder(String name, String email) {
+        helpers.put(name, new Counterparty(name, email, URI.create(helperHost + "/" + name)));
     }
 }

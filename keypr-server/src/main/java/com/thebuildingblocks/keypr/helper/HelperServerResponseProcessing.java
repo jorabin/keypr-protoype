@@ -39,11 +39,11 @@ import static com.thebuildingblocks.keypr.helper.HelperServerMessageFactory.*;
 public class HelperServerResponseProcessing {
     private final static Logger logger = LoggerFactory.getLogger(HelperServer.class);
     private final HelperServerShare.Storage storage;
-    private final DeRecIdentity id;
+    private final DeRecIdentity myId;
 
-    public HelperServerResponseProcessing(DeRecIdentity id, HelperServerShare.Storage storage) {
+    public HelperServerResponseProcessing(DeRecIdentity myId, HelperServerShare.Storage storage) {
         this.storage = storage;
-        this.id = id;
+        this.myId = myId;
     }
 
     /**
@@ -106,13 +106,13 @@ public class HelperServerResponseProcessing {
 
     private Derecmessage.DeRecMessage.HelperMessageBody processVerifyShareRequestMessage(Derecmessage.DeRecMessage message,
                                                                                          Verify.VerifyShareRequestMessage verifyShareRequestMessage) {
-        logger.info("{} received {}", id.getName(), verifyShareRequestMessage.getClass().getSimpleName());
+        logger.info("{} received {}", myId.getName(), verifyShareRequestMessage.getClass().getSimpleName());
         return getVerifyShareResponseMessageBody(verifyShareRequestMessage.getNonce().toByteArray());
     }
 
     private Derecmessage.DeRecMessage.HelperMessageBody processShareRequest(Derecmessage.DeRecMessage message,
                                                                             Storeshare.StoreShareRequestMessage storeShareRequestMessage) throws InvalidProtocolBufferException {
-        logger.info("{} received {}", id.getName(), storeShareRequestMessage.getClass().getSimpleName());
+        logger.info("{} received {}", myId.getName(), storeShareRequestMessage.getClass().getSimpleName());
         ByteString shareBytes = storeShareRequestMessage.getCommittedDeRecShare().getDeRecShare();
 
         // parse the raw bytes of the incoming message
@@ -128,7 +128,7 @@ public class HelperServerResponseProcessing {
 
     private Derecmessage.DeRecMessage.HelperMessageBody processUnPairRequest(Derecmessage.DeRecMessage message,
                                                                              Unpair.UnpairRequestMessage unpairRequestMessage) {
-        logger.info("{} received {}", id.getName(), unpairRequestMessage.getClass().getSimpleName());
+        logger.info("{} received {}", myId.getName(), unpairRequestMessage.getClass().getSimpleName());
         return getUnpairResponseMessageBody();
     }
 
@@ -138,7 +138,7 @@ public class HelperServerResponseProcessing {
                         .stream()
                         .collect(Collectors.toMap(Communicationinfo.CommunicationInfoKeyValue::getKey,
                                 kv -> kv.hasStringValue() ? kv.getStringValue() : kv.getBytesValue()));
-        logger.info("{} received {} \"{}\"", id.getName(), pairRequestMessage.getClass().getSimpleName(),
+        logger.info("{} received {} \"{}\"", myId.getName(), pairRequestMessage.getClass().getSimpleName(),
                 communicationInfo.get("name"));
         return getPairResponseMessageBody();
     }
